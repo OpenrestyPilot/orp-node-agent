@@ -1,0 +1,22 @@
+[Unit]
+Description=OpenResty Plus Node Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=orp-agent
+Group=orp-agent
+StateDirectory=orp-node-agent
+StateDirectoryMode=0700
+ExecStart=/usr/local/bin/orp-node-agent -config /etc/orp-node-agent/config.json
+Restart=on-failure
+RestartSec=5s
+UMask=0077
+# sudo is permitted only for the root-owned, argument-free reload helper.
+# Keep this unit free of NoNewPrivileges and mount-namespace sandboxing so sudo
+# can elevate that one command; the Agent itself runs as an unprivileged user.
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_DAC_OVERRIDE CAP_KILL
+
+[Install]
+WantedBy=multi-user.target

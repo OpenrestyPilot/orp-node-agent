@@ -1,0 +1,14 @@
+{
+  "nodeId": "replace-with-registered-node-id",
+  "controlPlaneUrl": "https://control.example.com",
+  "clientCertFile": "/etc/orp-node-agent/pki/node.crt",
+  "clientKeyFile": "/etc/orp-node-agent/pki/node.key",
+  "serverCAFile": "/etc/orp-node-agent/pki/control-plane-ca.crt",
+  "pollIntervalSeconds": 15,
+  "httpTimeoutSeconds": 10,
+  "nginxBinary": "/usr/local/openresty/nginx/sbin/nginx",
+  "nginxConfig": "/usr/local/openresty/nginx/conf/nginx.conf",
+  "reloadHelper": "/usr/local/sbin/orp-openresty-reload",
+  "stateDir": "/var/lib/orp-node-agent",
+  "pidFile": "/usr/local/openresty/nginx/logs/nginx.pid"
+}

@@ -1,0 +1,2 @@
+# Install as /etc/sudoers.d/orp-node-agent (mode 0440) and validate with visudo.
+orp-agent ALL=(root) NOPASSWD: /usr/local/sbin/orp-openresty-reload

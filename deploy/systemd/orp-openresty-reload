@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -ne 0 ]; then
+  echo "arguments are not accepted" >&2
+  exit 2
+fi
+
+nginx=/usr/local/openresty/nginx/sbin/nginx
+config=/usr/local/openresty/nginx/conf/nginx.conf
+"$nginx" -t -c "$config"
+exec "$nginx" -s reload -c "$config"
