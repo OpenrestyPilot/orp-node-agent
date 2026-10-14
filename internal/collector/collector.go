@@ -71,15 +71,26 @@ func processMatches(pid int, binary string) bool {
 	if runtime.GOOS == "linux" {
 		processPath := filepath.Join("/proc", strconv.Itoa(pid), "exe")
 		actual, err := os.Readlink(processPath)
-		if err != nil {
+		if err == nil {
+			actual = strings.TrimSuffix(actual, " (deleted)")
+			configured, resolveErr := filepath.EvalSymlinks(binary)
+			if resolveErr != nil {
+				configured = binary
+			}
+			return filepath.Clean(actual) == filepath.Clean(configured)
+		}
+		// A least-privileged Agent cannot always read /proc/<pid>/exe for a
+		// root-owned OpenResty master. /proc/<pid>/comm remains readable and
+		// provides a bounded fallback using the configured executable name.
+		comm, commErr := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "comm"))
+		if commErr != nil {
 			return false
 		}
-		actual = strings.TrimSuffix(actual, " (deleted)")
-		configured, err := filepath.EvalSymlinks(binary)
-		if err != nil {
-			configured = binary
+		expected := filepath.Base(binary)
+		if len(expected) > 15 {
+			expected = expected[:15]
 		}
-		return filepath.Clean(actual) == filepath.Clean(configured)
+		return strings.TrimSpace(string(comm)) == expected
 	}
 	if runtime.GOOS == "windows" {
 		return false

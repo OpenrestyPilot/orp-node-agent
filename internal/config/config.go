@@ -17,6 +17,7 @@ type Config struct {
 	ClientCert   string        `json:"clientCertFile"`
 	ClientKey    string        `json:"clientKeyFile"`
 	ServerCA     string        `json:"serverCAFile"`
+	AgentToken   string        `json:"agentToken,omitempty"`
 	PollInterval time.Duration `json:"-"`
 	HTTPTimeout  time.Duration `json:"-"`
 	NginxBinary  string        `json:"nginxBinary"`
@@ -32,6 +33,7 @@ type fileConfig struct {
 	ClientCert          string `json:"clientCertFile"`
 	ClientKey           string `json:"clientKeyFile"`
 	ServerCA            string `json:"serverCAFile"`
+	AgentToken          string `json:"agentToken"`
 	PollIntervalSeconds int    `json:"pollIntervalSeconds"`
 	HTTPTimeoutSeconds  int    `json:"httpTimeoutSeconds"`
 	NginxBinary         string `json:"nginxBinary"`
@@ -53,7 +55,7 @@ func Load(path string) (Config, error) {
 	if err := decoder.Decode(&file); err != nil {
 		return cfg, fmt.Errorf("parse config: %w", err)
 	}
-	cfg = Config{NodeID: file.NodeID, ControlPlane: file.ControlPlane, ClientCert: file.ClientCert, ClientKey: file.ClientKey, ServerCA: file.ServerCA, PollInterval: time.Duration(file.PollIntervalSeconds) * time.Second, HTTPTimeout: time.Duration(file.HTTPTimeoutSeconds) * time.Second, NginxBinary: file.NginxBinary, NginxConfig: file.NginxConfig, ReloadHelper: file.ReloadHelper, StateDir: file.StateDir, PIDFile: file.PIDFile}
+	cfg = Config{NodeID: file.NodeID, ControlPlane: file.ControlPlane, ClientCert: file.ClientCert, ClientKey: file.ClientKey, ServerCA: file.ServerCA, AgentToken: file.AgentToken, PollInterval: time.Duration(file.PollIntervalSeconds) * time.Second, HTTPTimeout: time.Duration(file.HTTPTimeoutSeconds) * time.Second, NginxBinary: file.NginxBinary, NginxConfig: file.NginxConfig, ReloadHelper: file.ReloadHelper, StateDir: file.StateDir, PIDFile: file.PIDFile}
 	if cfg.PollInterval == 0 {
 		cfg.PollInterval = 15 * time.Second
 	}
@@ -74,8 +76,11 @@ func (c Config) Validate() error {
 	if err != nil || u.Scheme != "https" || u.Host == "" {
 		return errors.New("controlPlaneUrl must be an absolute https URL")
 	}
-	if c.ClientCert == "" || c.ClientKey == "" || c.ServerCA == "" {
-		return errors.New("client certificate, client key, and server CA are required for mTLS")
+	if c.ServerCA == "" || (c.AgentToken == "" && (c.ClientCert == "" || c.ClientKey == "")) {
+		return errors.New("server CA and either an Agent token or a complete client certificate/key pair are required")
+	}
+	if (c.ClientCert == "") != (c.ClientKey == "") {
+		return errors.New("client certificate and key must be configured together")
 	}
 	if c.PollInterval < time.Second || c.PollInterval > 5*time.Minute {
 		return errors.New("pollInterval must be between 1s and 5m")

@@ -34,11 +34,13 @@ release:
     - echo "Publishing Linux amd64 package for $CI_COMMIT_TAG"
   release:
     tag_name: "$CI_COMMIT_TAG"
-    name: "OpenResty Plus Node Agent $CI_COMMIT_TAG"
+    name: "ORP Node Agent $CI_COMMIT_TAG"
     description: "Linux amd64 binary package for the mTLS node Agent."
     assets:
       links:
         - name: Linux amd64 package
-          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/download?job=package-linux-amd64"
+          url: "$CI_PROJECT_URL/-/jobs/artifacts/$CI_COMMIT_TAG/raw/dist/orp-node-agent-linux-amd64-$CI_COMMIT_TAG.tar.gz?job=package-linux-amd64"
+          filepath: "/orp-node-agent-linux-amd64.tar.gz"
+          link_type: package
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-beta\.\d+)?$/'

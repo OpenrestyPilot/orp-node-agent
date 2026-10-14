@@ -2,7 +2,7 @@
 
 Project identifier: `orp-node-agent`.
 
-The Agent is an independent Go project for enrolling external OpenResty instances into OpenResty Plus.
+The Agent is an independent Go project for enrolling external OpenResty instances into ORP.
 
 ## Responsibilities
 
@@ -24,4 +24,4 @@ deploy/systemd/              Restricted service and reload helper examples
 
 ## Status
 
-The Agent executable, state collector, outbound mTLS client, fixed reload operation, and systemd examples are implemented. The Go control plane does not yet expose Agent enrollment, heartbeat ingestion, task queue, or result endpoints. External-node publishing and production integration remain incomplete until those backend routes and certificate enrollment are implemented; see `docs/protocol.md`.
+The Agent executable supports outbound mTLS or Bearer-token authentication, state collection, fixed reload operations, and systemd deployment. OpenResty Pilot exposes node-token issuance, heartbeats, task queue, and result endpoints. Configuration artifact transfer and publish-batch integration remain incomplete; see `docs/protocol.md`.

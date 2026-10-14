@@ -22,6 +22,7 @@ type Client struct {
 	base   *url.URL
 	http   *http.Client
 	nodeID string
+	token  string
 }
 type Task struct {
 	ID        string    `json:"id"`
@@ -41,6 +42,10 @@ type TaskResult struct {
 }
 
 func New(baseURL, nodeID, certFile, keyFile, caFile string, timeout time.Duration) (*Client, error) {
+	return NewWithToken(baseURL, nodeID, certFile, keyFile, caFile, "", timeout)
+}
+
+func NewWithToken(baseURL, nodeID, certFile, keyFile, caFile, token string, timeout time.Duration) (*Client, error) {
 	base, err := url.Parse(strings.TrimRight(baseURL, "/"))
 	if err != nil {
 		return nil, err
@@ -48,9 +53,13 @@ func New(baseURL, nodeID, certFile, keyFile, caFile string, timeout time.Duratio
 	if base.Scheme != "https" || base.Host == "" {
 		return nil, errors.New("control plane URL must use https")
 	}
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, fmt.Errorf("load client identity: %w", err)
+	var certificates []tls.Certificate
+	if certFile != "" || keyFile != "" {
+		cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			return nil, fmt.Errorf("load client identity: %w", err)
+		}
+		certificates = []tls.Certificate{cert}
 	}
 	caPEM, err := osReadFile(caFile)
 	if err != nil {
@@ -60,8 +69,8 @@ func New(baseURL, nodeID, certFile, keyFile, caFile string, timeout time.Duratio
 	if !roots.AppendCertsFromPEM(caPEM) {
 		return nil, errors.New("server CA file contains no certificates")
 	}
-	transport := &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{cert}, RootCAs: roots}}
-	return &Client{base: base, nodeID: nodeID, http: &http.Client{Transport: transport, Timeout: timeout}}, nil
+	transport := &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12, Certificates: certificates, RootCAs: roots}}
+	return &Client{base: base, nodeID: nodeID, token: token, http: &http.Client{Transport: transport, Timeout: timeout}}, nil
 }
 
 // osReadFile is kept tiny to make the client constructor's filesystem boundary explicit.
@@ -105,6 +114,9 @@ func (c *Client) request(ctx context.Context, method, path string, body, out any
 		return err
 	}
 	req.Header.Set("Accept", "application/json")
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}

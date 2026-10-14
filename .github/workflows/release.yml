@@ -1,0 +1,28 @@
+name: Release Agent packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  linux-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build package
+        run: |
+          mkdir -p dist/package
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o dist/package/orp-node-agent ./cmd/orp-node-agent
+          cp README.md LICENSE dist/package/
+          cp -R deploy/systemd docs dist/package/
+          tar -C dist/package -czf dist/orp-node-agent-linux-amd64.tar.gz .
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/orp-node-agent-linux-amd64.tar.gz

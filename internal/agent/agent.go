@@ -22,7 +22,7 @@ type Agent struct {
 }
 
 func New(cfg config.Config, logger *slog.Logger) (*Agent, error) {
-	client, err := controlplane.New(cfg.ControlPlane, cfg.NodeID, cfg.ClientCert, cfg.ClientKey, cfg.ServerCA, cfg.HTTPTimeout)
+	client, err := controlplane.NewWithToken(cfg.ControlPlane, cfg.NodeID, cfg.ClientCert, cfg.ClientKey, cfg.ServerCA, cfg.AgentToken, cfg.HTTPTimeout)
 	if err != nil {
 		return nil, err
 	}

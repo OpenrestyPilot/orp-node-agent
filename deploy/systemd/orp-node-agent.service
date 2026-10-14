@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenResty Plus Node Agent
+Description=ORP Node Agent
 After=network-online.target
 Wants=network-online.target
 
